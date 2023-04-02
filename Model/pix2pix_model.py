@@ -17,5 +17,29 @@ def up_sample(in_channels,out_channels,kernel_size=4,stride=2,padding=1,bias=Fal
     layers.append(nn.ReLU(inplace=True))
     return nn.Sequential(*layers)
 
+class Generator(nn.Module):
+    def __init__(self):
+        super(Generator, self).__init__()
 
+        self.down_stack = nn.ModuleList([
+            down_sample(64, 128, apply_norm=False),
+            down_sample(128, 256),
+            down_sample(256, 512),
+            down_sample(512, 512),
+            down_sample(512, 512),
+            down_sample(512, 512),
+            down_sample(512, 512),
+            down_sample(512, 512),
+
+        ])
+
+        self.up_stack = nn.ModuleList([
+            up_sample(512, 512, apply_dropout=True),
+            up_sample(512, 512, apply_dropout=True),
+            up_sample(512, 512, apply_dropout=True),
+            up_sample(512, 256),
+            up_sample(256, 128),
+            up_sample(128, 64),
+            up_sample(64, 4),
+        ])
 
