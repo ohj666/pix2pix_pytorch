@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 def down_sample(in_channels,out_channels,kernel_size=4,stride=2,padding=1,bias=False,apply_norm=True):
@@ -42,4 +43,19 @@ class Generator(nn.Module):
             up_sample(128, 64),
             up_sample(64, 4),
         ])
+
+    def forward(self, x):
+        skips = []
+        for down in self.down_stack:
+            x = down(x)
+            skips.append(x)
+
+        skips = reversed(skips[:-1])
+
+        for up, skip in zip(self.up_stack, skips):
+            x = up(x)
+            x = torch.cat([x, skip], axis=1)
+
+        x = self.last(x)
+        return x
 
