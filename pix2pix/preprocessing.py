@@ -2,24 +2,59 @@ import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from matplotlib import pyplot as plt
-IMAGE_SIZE = 256
-DATA_ROOT = r"D:\Googledownloads\traing_data\test"
-train_data = torch.utils.data.DataLoader(datasets.ImageFolder(root=DATA_ROOT,
-                                                              transform=transforms.Compose([
-                                                                  transforms.Resize((286, 572)),
-                                                                  transforms.CenterCrop((256, 512)),
-                                                                  transforms.ToTensor(),
-                                                                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                                                                  transforms.RandomHorizontalFlip()
 
-                                                              ])
-                                                              ),
-                                         batch_size=1,
-                                         shuffle=True)
-dataiter = iter(train_data)
-images, labels = dataiter.next()
-img = images[0]
-img = img / 2 + 0.5  # 反归一化
-img = img.numpy().transpose((1, 2, 0))
-plt.imshow(img)
-plt.show()
+IMAGE_SIZE = 256
+TRAIN_ROOT = r"D:\data\train"
+TEST_ROOT = r"D:\data\train"
+
+def get_train_test_data():
+    train_data = torch.utils.data.DataLoader(datasets.ImageFolder(root=TRAIN_ROOT,
+                                                                  transform=transforms.Compose([
+                                                                      transforms.ToTensor(),
+                                                                      transforms.Normalize((0.5, 0.5, 0.5),
+                                                                                           (0.5, 0.5, 0.5)),
+                                                                  ])
+                                                                  ),
+                                             batch_size=1,
+                                             shuffle=True)
+
+    test_data = torch.utils.data.DataLoader(datasets.ImageFolder(root=TEST_ROOT,
+                                                            transform=transforms.Compose([
+                                                              transforms.ToTensor(),
+                                                              transforms.Normalize((0.5, 0.5, 0.5),
+                                                                                   (0.5, 0.5, 0.5)),
+                                                                  ])
+                                                                  ),
+                                       batch_size=1,
+                                       shuffle=True)
+    return train_data,test_data
+
+
+def show_img(img):
+    img = img * 0.5 + 0.5
+    img = img.permute(1, 2, 0)
+    plt.imshow(img)
+    plt.show()
+
+
+def split_flip_crop_train_img(image):
+    real, rain_img = torch.chunk(image, 2, 2)
+    transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.Resize(284),
+        transforms.RandomCrop(256)
+    ])
+    real = transform(real)
+    rain_img = transform(rain_img)
+    return real, rain_img
+
+
+def split_flip_crop_test_img(image):
+    real, rain_img = torch.chunk(image, 2, 2)
+    transform = transforms.Compose([
+        transforms.Resize(284),
+        transforms.RandomCrop(256)
+    ])
+    real = transform(real)
+    rain_img = transform(rain_img)
+    return real, rain_img
