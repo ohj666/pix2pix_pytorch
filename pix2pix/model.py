@@ -8,15 +8,15 @@ def down_sample(in_channels, out_channels, kernel_size=4, stride=2, padding=1, b
     layers.append(
         nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias))
     if apply_norm:
-        layers.append(nn.InstanceNorm2d(out_channels, affine=True))
+        layers.append(nn.BatchNorm2d(out_channels))
     layers.append(nn.LeakyReLU(0.2, inplace=True))
     return nn.Sequential(*layers)
 
 
 def up_sample(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False, apply_dropout=True):
     layers = []
-    layers.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias))
-    layers.append(nn.InstanceNorm2d(out_channels, affine=True))
+    layers.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=bias))
+    layers.append(nn.BatchNorm2d(out_channels))
     if apply_dropout:
         layers.append(nn.Dropout2d(p=0.5))
     layers.append(nn.ReLU(inplace=True))
@@ -27,14 +27,14 @@ class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
         self.down_stack = nn.ModuleList([
-            down_sample(3, 64, apply_norm=False),
-            down_sample(64, 128),
-            down_sample(128, 256),
-            down_sample(256, 512),
-            down_sample(512, 512),
-            down_sample(512, 512),
-            down_sample(512, 512),
-            down_sample(512, 512),
+            down_sample(3, 64, apply_norm=False), #output = (64,128,128)
+            down_sample(64, 128),#output = (128,64,64)
+            down_sample(128, 256),#ouput = (256,32,32)
+            down_sample(256, 512),#output = (512,16,16)
+            down_sample(512, 512),#output = (512,8,8)
+            down_sample(512, 512),#output = (512,4,4)
+            down_sample(512, 512),#output = (512,2,2)
+            down_sample(512, 512, apply_norm=False),#output = (512,1,1)
 
         ])
 
@@ -52,12 +52,12 @@ class Generator(nn.Module):
             up_sample(1024, 512, apply_dropout=True),  # (batch_size, 4, 4, 1024)
             up_sample(1024, 512, apply_dropout=True),  # (batch_size, 8, 8, 1024)
             up_sample(1024, 512),  # (batch_size, 16, 16, 1024)
-            up_sample(512, 256),  # (batch_size, 32, 32, 512)
-            up_sample(256, 128),  # (batch_size, 64, 64, 256)
-            up_sample(128, 64),  # (batch_size, 128, 128, 128)
+            up_sample(1024, 256),  # (batch_size, 32, 32, 512)
+            up_sample(512, 128),  # (batch_size, 64, 64, 256)
+            up_sample(256, 192),  # (batch_size, 128, 128, 128)
         ])
 
-        self.last = nn.ConvTranspose2d(64 + 3, 3, kernel_size=4, stride=2, padding=1)
+        self.last = nn.ConvTranspose2d(256, 3, kernel_size=4, stride=2, padding=1)
 
     def forward(self, x):
         skips = []
@@ -65,10 +65,12 @@ class Generator(nn.Module):
             x = down(x)
             skips.append(x)
 
-        skips = reversed(skips[-1])
+        skips = reversed(skips[:-1])
 
         for up, skip in zip(self.up_stack, skips):
             x = up(x)
+            print(x.size())
+            print(skip.size())
             x = torch.cat([x, skip], dim=1)
 
         x = self.last(x)
@@ -84,7 +86,7 @@ class Discriminator(nn.Module):
         self.down3 = down_sample(128, 256)
         self.zero_pad1 = nn.ZeroPad2d((1, 1, 1, 1))
         self.conv = nn.Conv2d(256, 512, kernel_size=4, stride=1, padding=0, bias=False)
-        self.batch_norm1 = nn.InstanceNorm2d(512, affine=True)
+        self.batch_norm1 = nn.BatchNorm2d(512)
         self.leaky_relu = nn.LeakyReLU(0.2)
         self.zero_pad2 = nn.ZeroPad2d((1, 1, 1, 1))
         self.last = nn.Conv2d(512, 1, kernel_size=4, stride=1, padding=0)

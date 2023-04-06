@@ -18,7 +18,7 @@ image, _ = next(dataiter)
 # show_img(real)
 img_test = torch.randn(1, 3, 256, 256)
 show_img(img_test[0])
-gen_out = testmodel(img_test)
+gen_out = generator(img_test)
 show_img(gen_out.detach()[0])
 print(gen_out.size())
 
