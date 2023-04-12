@@ -1,11 +1,12 @@
+import random
 import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from matplotlib import pyplot as plt
 
 IMAGE_SIZE = 256
-TRAIN_ROOT = r"D:\data\train"
-TEST_ROOT = r"D:\data\train"
+TRAIN_ROOT = r"D:\over\new_email\new_email\traing_data\train"
+TEST_ROOT = r"D:\over\new_email\new_email\traing_data\test"
 
 def get_train_test_data():
     train_data = torch.utils.data.DataLoader(datasets.ImageFolder(root=TRAIN_ROOT,
@@ -40,10 +41,14 @@ def show_img(img):
 def split_flip_crop_train_img(image):
     real, rain_img = torch.chunk(image, 2, 2)
     transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
+
         transforms.Resize(284),
         transforms.RandomCrop(256)
     ])
+    flip = transforms.RandomHorizontalFlip(1)
+    if random.random()>0.5:
+        rain_img = flip(rain_img)
+        real = flip(real)
     real = transform(real)
     rain_img = transform(rain_img)
     return real, rain_img

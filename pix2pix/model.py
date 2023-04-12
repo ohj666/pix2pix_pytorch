@@ -69,8 +69,6 @@ class Generator(nn.Module):
 
         for up, skip in zip(self.up_stack, skips):
             x = up(x)
-            print(x.size())
-            print(skip.size())
             x = torch.cat([x, skip], dim=1)
 
         x = self.last(x)
@@ -79,7 +77,7 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, inp, tar):
+    def __init__(self):
         super(Discriminator, self).__init__()
         self.down1 = down_sample(3 * 2, 64, apply_norm=False)
         self.down2 = down_sample(64, 128)
@@ -93,7 +91,6 @@ class Discriminator(nn.Module):
 
     def forward(self, inp, tar):
         x = torch.cat([inp, tar], dim=1)
-
         x = self.down1(x)
         x = self.down2(x)
         x = self.down3(x)

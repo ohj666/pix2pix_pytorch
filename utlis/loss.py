@@ -14,11 +14,11 @@ LAMBDA=100的值是通过实验得到的，可以控制重构损失的权重，�
 def generator_loss(disc_generated_output, gen_output, target, LAMBDA=100):
     gan_loss = F.binary_cross_entropy_with_logits(disc_generated_output, torch.ones_like(disc_generated_output))
     l1_loss = F.l1_loss(gen_output, target)
-    total_gen_loss = gan_loss + (l1_loss + LAMBDA)
-    return total_gen_loss
+    total_gen_loss = gan_loss.item() + (l1_loss.item() * LAMBDA)
+    return total_gen_loss , gan_loss, l1_loss
 def discriminator_loss(disc_real_output, disc_gen):
     real_loss = F.binary_cross_entropy_with_logits(disc_real_output, torch.ones_like(disc_real_output))
-    generated_loss = F.binary_cross_entropy_with_logits(disc_gen, torch.ones_like(disc_real_output))
+    generated_loss = F.binary_cross_entropy_with_logits(disc_gen, torch.zeros_like(disc_real_output))
     total_disc_loss = real_loss + generated_loss
     return total_disc_loss
 def train_generator(generator, discriminator, generator_optimizer, input_image, target):
