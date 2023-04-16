@@ -7,6 +7,8 @@ from matplotlib import pyplot as plt
 IMAGE_SIZE = 256
 TRAIN_ROOT = r"D:\over\new_email\new_email\traing_data\train"
 TEST_ROOT = r"D:\over\new_email\new_email\traing_data\test"
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 def get_train_test_data():
     train_data = torch.utils.data.DataLoader(datasets.ImageFolder(root=TRAIN_ROOT,
@@ -16,8 +18,9 @@ def get_train_test_data():
                                                                                            (0.5, 0.5, 0.5)),
                                                                   ])
                                                                   ),
-                                             batch_size=1,
-                                             shuffle=True)
+                                             batch_size=32,
+                                             shuffle=True,
+)
 
     test_data = torch.utils.data.DataLoader(datasets.ImageFolder(root=TEST_ROOT,
                                                             transform=transforms.Compose([
@@ -39,7 +42,7 @@ def show_img(img):
 
 
 def split_flip_crop_train_img(image):
-    real, rain_img = torch.chunk(image, 2, 2)
+    real, rain_img = torch.chunk(image, 2, 3)
     transform = transforms.Compose([
 
         transforms.Resize(284),
@@ -55,7 +58,7 @@ def split_flip_crop_train_img(image):
 
 
 def split_flip_crop_test_img(image):
-    real, rain_img = torch.chunk(image, 2, 2)
+    real, rain_img = torch.chunk(image, 2, 3)
     transform = transforms.Compose([
         transforms.Resize(284),
         transforms.RandomCrop(256)
@@ -63,3 +66,4 @@ def split_flip_crop_test_img(image):
     real = transform(real)
     rain_img = transform(rain_img)
     return real, rain_img
+
