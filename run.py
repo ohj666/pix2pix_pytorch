@@ -84,7 +84,7 @@ for i in range(EPOCH):
                  d_loss, g_loss))
     if i % 10 == 0:
             print(f"完成第{i}次训练")
-            writer = SummaryWriter("log_path/g_lr_0.1_d_lr_0.1_epoch_1000")
+            writer = SummaryWriter("log_path/g_lr_0.1_d_lr_0.1_epoch_1000_2")
             writer.add_scalar('D_loss', sum(D_loss) / len(D_loss), i)
             writer.add_scalar('G_loss', sum(G_loss) / len(G_loss), i)
             X, _ = next(iter(test))

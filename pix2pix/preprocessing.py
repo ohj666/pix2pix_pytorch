@@ -18,7 +18,7 @@ def get_train_test_data():
                                                                                            (0.5, 0.5, 0.5)),
                                                                   ])
                                                                   ),
-                                             batch_size=32,
+                                             batch_size=8,
                                              shuffle=True,
 )
 
